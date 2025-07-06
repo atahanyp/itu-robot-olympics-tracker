@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ITU Robot Olimpiyatları - Maç Yayını</title>
+    <style>
+        :root {
+            --itu-orange: #FF8C42;
+            --itu-gray: #2D2D2D;
+            --itu-light-gray: #404040;
+        }
+
+        @font-face {
+            font-family: 'Pixel Font';
+            src: url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--itu-gray);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-family: 'Pixel Font', 'Press Start 2P', monospace;
+            color: var(--itu-orange);
+            font-size: 2.5em;
+            text-transform: uppercase;
+            margin: 0;
+            text-shadow: 3px 3px 0px var(--itu-gray);
+        }
+
+        .header .subtitle {
+            color: #888;
+            font-size: 1.2em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .current-match {
+            background: var(--itu-light-gray);
+            border: 3px solid var(--itu-orange);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 1000px;  /* Expanded max width */
+            transform: scale(1);
+            transition: all 0.5s ease-in-out;
+            text-align: center;  /* Centered */
+            animation: glow 2s infinite;
+        }
+
+        .current-match h2 {
+            font-size: 2em;  /* Larger title */
+            color: var(--itu-orange);
+            margin-bottom: 20px;
+        }
+
+        .current-match .match {
+            font-size: 1.5em;  /* Larger content */
+            padding: 25px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        .current-match .team {
+            font-size: 1em;          /* Smaller (was 1.2em) */
+            padding: 8px 15px;       /* Reduced padding */
+            margin: 0 10px;          /* Less margin */
+            background: var(--itu-gray);
+            border: 1px solid var(--itu-orange);
+            display: inline-block;   /* Inline block */
+            white-space: nowrap;     /* No line break */
+            max-width: 200px;        /* Max width */
+            overflow: hidden;        /* Hide overflow */
+            text-overflow: ellipsis; /* Ellipsis for overflow */
+            vertical-align: middle;  /* Vertical alignment */
+        }
+
+        .current-match .score {
+            font-size: 1.5em;       
+            vertical-align: middle;  
+        }
+
+        .current-match .vs {
+            font-size: 1.2em;
+            color: #888;
+            margin: 0 15px;
+            vertical-align: middle;  
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.01); }  
+            100% { transform: scale(1); }
+        }
+
+        .dohyo-box { 
+            background: var(--itu-light-gray);
+            border-radius: 8px;
+            margin: 20px auto;
+            padding: 20px;
+            max-width: 800px;
+            opacity: 0;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            display: none;
+        }
+
+        .dohyo-box.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            display: block;
+        }
+
+        .dohyo-box h2 {
+            color: var(--itu-orange);
+            font-size: 1.5em;
+            margin-top: 0;
+            border-bottom: 2px solid var(--itu-orange);
+            padding-bottom: 10px;
+        }
+
+        .match {
+            background: rgba(255,255,255,0.05);
+            border-radius: 5px;
+            margin: 10px 0;
+            padding: 15px;
+            transition: background 0.3s ease;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .match:hover {
+            background: rgba(255,140,66,0.1);
+            transform: translateX(10px);
+            background: rgba(255,140,66,0.15);
+        }
+
+        .score {
+            font-size: 1.2em;
+            color: var(--itu-orange);
+            font-weight: bold;
+        }
+
+        .vs {
+            color: #666;
+            margin: 0 10px;
+        }
+
+        .team {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .upcoming-matches {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,140,66,0.3);
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--itu-orange); }
+            50% { box-shadow: 0 0 20px var(--itu-orange); }
+            100% { box-shadow: 0 0 5px var(--itu-orange); }
+        }
+
+        /* Yeni geçiş animasyonları */
+        .dohyo-box.active .match {
+            animation: slideIn 0.5s forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Her maç için farklı gecikme */
+        .dohyo-box.active .match:nth-child(1) { animation-delay: 0.1s; }
+        .dohyo-box.active .match:nth-child(2) { animation-delay: 0.2s; }
+        .dohyo-box.active .match:nth-child(3) { animation-delay: 0.3s; }
+        .dohyo-box.active .match:nth-child(4) { animation-delay: 0.4s; }
+
+        .youtube-link {
+            text-align: center;
+            margin: 20px auto 40px auto;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            max-width: 600px;
+            border: 1px solid var(--itu-orange);
+        }
+
+        .youtube-link {
+            color: var(--itu-orange);
+            font-size: 1.2em;
+        }
+
+        .vs-large {
+            color: var(--itu-orange);
+            font-size: 2em;
+            font-weight: bold;
+            margin: 0 30px;
+            vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/static/itu-logo.png" alt="ITU Robot Olimpiyatları">
+        <h1>İTÜ Robot Olimpiyatları 2025</h1>
+        <div class="subtitle">Mini Sumo Kategorisi</div>
+    </div>
+
+    <div class="youtube-link">
+        📺 Mini Sumo kategorisi maç akışı canlı yayınına İTÜRO YouTube kanalından ulaşabilirsiniz
+    </div>
+
+    <div id="dohyo-display"></div>
+
+    <script>
+        let currentDohyoIndex = 0;
+        let dohyoBoxes = [];
+
+        // Get matches and update UI
+        function updateMatches() {
+            fetch('/api/matches')
+                .then(response => response.json())
+                .then(data => {
+                    // Reset display
+                    const display = document.getElementById('dohyo-display');
+                    display.innerHTML = '';
+                    dohyoBoxes = [];
+
+                    // Group matches by dohyo
+                    const matches = {};
+                    data.forEach(match => {
+                        if (!matches[match.Dohyo]) {
+                            matches[match.Dohyo] = [];
+                        }
+                        matches[match.Dohyo].push(match);
+                    });
+
+                    // Render each dohyo
+                    Object.entries(matches).sort().forEach(([dohyo, dohyoMatches]) => {
+                        const dohyoDiv = document.createElement('div');
+                        dohyoDiv.className = 'dohyo-box';
+                        
+                        // Show last played match
+                        const lastMatch = dohyoMatches[dohyoMatches.length - 1];
+                        if (lastMatch && (lastMatch['Skor 1'] > 0 || lastMatch['Skor 2'] > 0)) {
+                            dohyoDiv.innerHTML = `
+                                <div class="current-match">
+                                    <h2>${dohyo}</h2>
+                                    <div class="match">
+                                        <span class="team">${lastMatch['1. Köşe']}</span>
+                                        ${lastMatch['Skor 1'] !== 9 ? `
+                                            <span class="score">${lastMatch['Skor 1']}</span>
+                                            <span class="vs">VS</span>
+                                            <span class="score">${lastMatch['Skor 2']}</span>
+                                        ` : '<span class="vs-large">VS</span>'}
+                                        <span class="team">${lastMatch['2. Köşe']}</span>
+                                    </div>
+                                </div>`;
+                        }
+
+                        // Show upcoming matches
+                        dohyoDiv.innerHTML += `
+                            <div class="upcoming-matches">
+                                <h2>Upcoming Matches</h2>
+                                ${dohyoMatches.slice(0, -1).map(match => `
+                                    <div class="match">
+                                        <span class="team">${match['1. Köşe']}</span>
+                                        <span class="vs">VS</span>
+                                        <span class="team">${match['2. Köşe']}</span>
+                                    </div>
+                                `).join('')}
+                            </div>`;
+
+                        display.appendChild(dohyoDiv);
+                        dohyoBoxes.push(dohyoDiv);
+                    });
+
+                    // Activate first dohyo
+                    if (dohyoBoxes.length > 0) {
+                        dohyoBoxes.forEach(box => box.classList.remove('active'));
+                        dohyoBoxes[0].classList.add('active');
+                        currentDohyoIndex = 0;
+                    }
+                })
+                .catch(error => {
+                    console.error("Fetch error:", error);
+                });
+        }
+
+        // Switch active dohyo
+        function rotateDohyos() {
+            if (dohyoBoxes.length <= 1) return;
+            
+            dohyoBoxes[currentDohyoIndex].classList.remove('active');
+            currentDohyoIndex = (currentDohyoIndex + 1) % dohyoBoxes.length;
+            dohyoBoxes[currentDohyoIndex].classList.add('active');
+        }
+
+        // Initial load and intervals
+        updateMatches();
+        setInterval(updateMatches, 30000);  // Refresh every 30s
+        setInterval(rotateDohyos, 10000);   // Rotate every 10s
+    </script>
+</body>
+</html>

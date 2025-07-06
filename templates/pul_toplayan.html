@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ITU Robot Olimpiyatları - Pul Toplayan</title>
+    <style>
+        :root {
+            --itu-orange: #FF8C42;
+            --itu-gray: #2D2D2D;
+            --itu-light-gray: #404040;
+        }
+
+        @font-face {
+            font-family: 'Pixel Font';
+            src: url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        }
+
+        body { 
+            font-family: 'Segoe UI', sans-serif;
+            background: var(--itu-gray);
+            color: #fff;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        /* Header section */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        /* Logo */
+        .header img {
+            max-width: 200px;
+            margin-bottom: 20px;
+        }
+
+        /* Main title */
+        .header h1 {
+            font-family: 'Pixel Font', 'Press Start 2P', monospace;
+            color: var(--itu-orange);
+            font-size: 2.5em;
+            text-transform: uppercase;
+            margin: 0;
+            text-shadow: 3px 3px 0px var(--itu-gray);
+        }
+
+        /* Subtitle */
+        .header .subtitle {
+            color: #888;
+            font-size: 1.2em;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        /* Match container */
+        .match-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 0.5s forwards;
+        }
+
+        /* Current match box */
+        .current-match {
+            background: var(--itu-light-gray);
+            border: 3px solid var(--itu-orange);
+            border-radius: 15px;
+            padding: 30px;
+            margin: 30px auto;
+            text-align: center;
+            animation: glow 2s infinite;
+        }
+
+        /* Current match title */
+        .current-match h2 {
+            font-size: 2.5em;
+            color: var(--itu-orange);
+            margin-bottom: 20px;
+        }
+
+        /* Match row */
+        .match {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            margin: 15px 0;
+            padding: 20px;
+            transition: all 0.3s ease;
+            opacity: 0;
+            transform: translateX(-20px);
+            animation: slideIn 0.5s forwards;
+        }
+
+        /* Current match row */
+        .current-match .match {
+            font-size: 1.5em;
+            padding: 25px;
+            background: rgba(255,255,255,0.08);
+        }
+
+        /* Team name */
+        .team {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 0 15px;
+            background: var(--itu-gray);
+            border: 1px solid var(--itu-orange);
+            font-size: 1.2em;
+        }
+
+        /* Score */
+        .score {
+            font-size: 1.8em;
+            color: var(--itu-orange);
+            font-weight: bold;
+            margin: 0 15px;
+        }
+
+        /* VS text */
+        .vs {
+            color: #888;
+            margin: 0 20px;
+            font-size: 1.2em;
+        }
+
+        /* Large VS */
+        .vs-large {
+            color: var(--itu-orange);
+            margin: 0 40px;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Upcoming matches section */
+        .upcoming-matches {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(255,140,66,0.3);
+        }
+
+        /* Upcoming matches title */
+        .upcoming-matches h2 {
+            color: var(--itu-orange);
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        /* Animations */
+        @keyframes glow {
+            0% { box-shadow: 0 0 5px var(--itu-orange); }
+            50% { box-shadow: 0 0 20px var(--itu-orange); }
+            100% { box-shadow: 0 0 5px var(--itu-orange); }
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Animation delays */
+        .match:nth-child(1) { animation-delay: 0.1s; }
+        .match:nth-child(2) { animation-delay: 0.2s; }
+        .match:nth-child(3) { animation-delay: 0.3s; }
+
+        /* Youtube info box */
+        .youtube-link {
+            text-align: center;
+            margin: 20px auto 40px auto;
+            padding: 15px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            max-width: 600px;
+            border: 1px solid var(--itu-orange);
+        }
+
+        .youtube-link {
+            color: var(--itu-orange);
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="/static/itu-logo.png" alt="ITU Robot Olimpiyatları">
+        <h1>İTÜ Robot Olimpiyatları 2025</h1>
+        <div class="subtitle">Pul Toplayan Kategorisi</div>
+    </div>
+
+    <div class="youtube-link">
+        📺 Pul Toplayan kategorisi maç akışı canlı yayınına İTÜRO YouTube kanalından ulaşabilirsiniz
+    </div>
+
+    <div class="match-container">
+        <div id="matches-display"></div>
+    </div>
+
+    <script>
+        // Fetch and update matches
+        function updateMatches() {
+            fetch('/api/matches')
+                .then(response => response.json())
+                .then(data => {
+                    // Log data for debug
+                    const display = document.getElementById('matches-display');
+                    
+                    if (!data || data.length === 0) {
+                        // No data found
+                        return;
+                    }
+
+                    display.innerHTML = '';
+
+                    // Show last played match
+                    const lastMatch = data[data.length - 1];
+                    if (lastMatch && (lastMatch['Skor 1'] > 0 || lastMatch['Skor 2'] > 0)) {
+                        display.innerHTML = `
+                            <div class="current-match">
+                                <h2>CURRENT MATCH</h2>
+                                <div class="match">
+                                    <span class="team">${lastMatch['1. Köşe']}</span>
+                                    <span class="vs-large">VS</span>
+                                    <span class="team">${lastMatch['2. Köşe']}</span>
+                                </div>
+                            </div>`;
+                    }
+
+                    // Show upcoming matches
+                    const upcomingMatches = data.slice(0, -1);
+                    if (upcomingMatches.length > 0) {
+                        display.innerHTML += `
+                            <div class="upcoming-matches">
+                                <h2>Upcoming Matches</h2>
+                                ${upcomingMatches.map(match => `
+                                    <div class="match">
+                                        <span class="team">${match['1. Köşe']}</span>
+                                        <span class="vs-large">VS</span>
+                                        <span class="team">${match['2. Köşe']}</span>
+                                    </div>
+                                `).join('')}
+                            </div>`;
+                    }
+                })
+                .catch(error => {
+                    // Fetch error
+                    console.error("Fetch error:", error);
+                });
+        }
+
+        // Initial load
+        updateMatches();
+        
+        // Auto update every 30s
+        setInterval(updateMatches, 30000);
+
+        // Debug: script loaded
+        console.log("Script loaded");
+    </script>
+</body>
+</html>
